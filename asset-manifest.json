@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/WaterUsageFrontend/static/css/main.e6c13ad2.css",
-    "main.js": "/WaterUsageFrontend/static/js/main.ecc14871.js",
+    "main.css": "/WaterUsageFrontend/static/css/main.0e26b9c7.css",
+    "main.js": "/WaterUsageFrontend/static/js/main.0bc4081f.js",
     "static/js/453.8ab44547.chunk.js": "/WaterUsageFrontend/static/js/453.8ab44547.chunk.js",
     "index.html": "/WaterUsageFrontend/index.html",
-    "main.e6c13ad2.css.map": "/WaterUsageFrontend/static/css/main.e6c13ad2.css.map",
-    "main.ecc14871.js.map": "/WaterUsageFrontend/static/js/main.ecc14871.js.map",
+    "main.0e26b9c7.css.map": "/WaterUsageFrontend/static/css/main.0e26b9c7.css.map",
+    "main.0bc4081f.js.map": "/WaterUsageFrontend/static/js/main.0bc4081f.js.map",
     "453.8ab44547.chunk.js.map": "/WaterUsageFrontend/static/js/453.8ab44547.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.e6c13ad2.css",
-    "static/js/main.ecc14871.js"
+    "static/css/main.0e26b9c7.css",
+    "static/js/main.0bc4081f.js"
   ]
 }
