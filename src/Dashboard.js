@@ -1,9 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, Tooltip, Legend, ArcElement } from 'chart.js';
+import './Dashboard.css'; // Add this for custom styles
+
+// Register necessary components in Chart.js
+ChartJS.register(Tooltip, Legend, ArcElement);
 
 function Dashboard() {
     const [devices, setDevices] = useState([]);
     const [userID, setUserID] = useState('');
     const [waterUsage, setWaterUsage] = useState([]);
+    const [chartData, setChartData] = useState(null);
 
     // Fetch water usage for multiple devices
     const fetchWaterUsage = useCallback(async (deviceIDs) => {
@@ -18,6 +25,26 @@ function Dashboard() {
 
         const waterUsageData = await response.json();
         setWaterUsage(waterUsageData);  // Update the water usage state with data for all devices
+
+        // Create chart data based on water usage
+        const labels = waterUsageData.map((usage) => `Device ID: ${usage.DeviceID}`);
+        const dataValues = waterUsageData.map((usage) => usage.WaterUsed);
+
+        const chartData = {
+            labels,
+            datasets: [
+                {
+                    label: 'Water Usage',
+                    data: dataValues,
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                    ],
+                    hoverOffset: 4
+                }
+            ]
+        };
+
+        setChartData(chartData);
     }, []);
 
     // Fetch devices for the current user
@@ -69,13 +96,13 @@ function Dashboard() {
     };
 
     return (
-        <div>
+        <div className="dashboard-container">
             <h1>Dashboard</h1>
             <p>Current User: {userID ? userID : 'No user logged in'}</p>
-            <button onClick={handleRefresh}>Refresh</button>
+            <button onClick={handleRefresh} className="refresh-button">Refresh</button>
 
             {devices.length > 0 ? (
-                <ul>
+                <ul className="device-list">
                     {devices.map(device => (
                         <li key={device.DeviceID}>
                             {device.DeviceName} - {device.DeviceID}
@@ -86,25 +113,24 @@ function Dashboard() {
                 <p>No devices registered yet.</p>
             )}
 
-            {waterUsage.length > 0 ? (
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Device ID</th>
-                            <th>Water Used</th>
-                            <th>Timestamp</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {waterUsage.map((usage, index) => (
-                            <tr key={index}>
-                                <td>{usage.DeviceID}</td>
-                                <td>{usage.WaterUsed}</td>
-                                <td>{usage.Timestamp}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            {waterUsage.length > 0 && chartData ? (
+                <div className="chart-container">
+                    <Pie 
+                        data={chartData} 
+                        options={{
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: (tooltipItem) => {
+                                            const deviceUsage = waterUsage[tooltipItem.dataIndex];
+                                            return `Device ID: ${deviceUsage.DeviceID}, Water Used: ${deviceUsage.WaterUsed}, Timestamp: ${deviceUsage.Timestamp}`;
+                                        }
+                                    }
+                                }
+                            }
+                        }}
+                    />
+                </div>
             ) : (
                 <p>No water usage data available.</p>
             )}

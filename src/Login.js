@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './Login.css'; // Add this for custom styles
 
 function Login() {
     const [username, setUsername] = useState('');
@@ -8,7 +9,7 @@ function Login() {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-    
+
         try {
             // Prepare the request body (double JSON encoding as required)
             const requestBody = JSON.stringify({
@@ -17,14 +18,14 @@ function Login() {
                     password: password
                 })
             });
-    
+
             // Make the login API request
             const response = await fetch('https://arj74ctnbi.execute-api.us-east-2.amazonaws.com/dev/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: requestBody  // Double body encoded as required
             });
-    
+
             // Parse the response
             const rawData = await response.json(); // Parse the raw response
             let data;
@@ -33,7 +34,7 @@ function Login() {
             } else {
                 data = rawData;
             }
-    
+
             // Check the statusCode returned by the API
             if (response.status === 200 && data.message === 'Login successful!') {
                 alert('Login successful!');
@@ -49,15 +50,14 @@ function Login() {
             alert('An error occurred during login');
         }
     };
-    
 
     const goToRegister = () => {
         navigate('/register');
     };
 
     return (
-        <div>
-            <h1>Login</h1>
+        <div className="login-container">
+            <h1>Dashboard Login</h1>
             <form onSubmit={handleLogin}>
                 <input
                     type="text"
@@ -76,7 +76,7 @@ function Login() {
                 <button type="submit">Login</button>
             </form>
 
-            <button onClick={goToRegister} style={{ marginTop: '20px' }}>
+            <button onClick={goToRegister} className="secondary-button">
                 Create Profile
             </button>
         </div>

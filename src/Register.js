@@ -1,6 +1,6 @@
-// src/Register.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './Register.css'; // Add this for custom styles
 
 function Register() {
     const [username, setUsername] = useState('');
@@ -28,15 +28,41 @@ function Register() {
         }
     };
 
+    // Navigate back to the login screen
+    const goToLogin = () => {
+        navigate('/');
+    };
+
     return (
-        <div>
+        <div className="register-container">
             <h1>Create Profile</h1>
             <form onSubmit={handleRegister}>
-                <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />
-                <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                <input type="email" placeholder="Email (optional)" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input 
+                    type="text" 
+                    placeholder="Username" 
+                    value={username} 
+                    onChange={(e) => setUsername(e.target.value)} 
+                    required 
+                />
+                <input 
+                    type="password" 
+                    placeholder="Password" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    required 
+                />
+                <input 
+                    type="email" 
+                    placeholder="Email (optional)" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                />
                 <button type="submit">Register</button>
             </form>
+            
+            <button onClick={goToLogin} className="back-button">
+                Back to Login
+            </button>
         </div>
     );
 }
