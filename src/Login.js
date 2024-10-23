@@ -38,8 +38,9 @@ function Login() {
             // Check the statusCode returned by the API
             if (response.status === 200 && data.message === 'Login successful!') {
                 alert('Login successful!');
-                // Store the userID in localStorage
+                // Store the userID and username in localStorage
                 localStorage.setItem('userID', data.UserID);
+                localStorage.setItem('username', username); // Store username as well
                 // Redirect to the dashboard
                 navigate('/dashboard');
             } else {

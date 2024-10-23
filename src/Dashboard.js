@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, Tooltip, Legend, ArcElement } from 'chart.js';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 import './Dashboard.css'; // Add this for custom styles
 
 // Register necessary components in Chart.js
@@ -9,8 +10,10 @@ ChartJS.register(Tooltip, Legend, ArcElement);
 function Dashboard() {
     const [devices, setDevices] = useState([]);
     const [userID, setUserID] = useState('');
+    const [username, setUsername] = useState('');  // New state for username
     const [waterUsage, setWaterUsage] = useState([]);
     const [chartData, setChartData] = useState(null);
+    const navigate = useNavigate(); // Initialize useNavigate for routing
 
     // Fetch water usage for multiple devices
     const fetchWaterUsage = useCallback(async (deviceIDs) => {
@@ -74,10 +77,14 @@ function Dashboard() {
 
     useEffect(() => {
         const storedUserID = localStorage.getItem('userID');
+        const storedUsername = localStorage.getItem('username'); // Fetch stored username
+
         console.log('Stored UserID in localStorage:', storedUserID);
+        console.log('Stored Username in localStorage:', storedUsername);
 
         if (storedUserID) {
             setUserID(storedUserID);
+            setUsername(storedUsername);  // Set the username state
             fetchDevices(storedUserID);  // Initial fetch
         } else {
             console.error('No userID found in local storage');
@@ -95,20 +102,40 @@ function Dashboard() {
         }
     };
 
+    // Handle logout button click
+    const handleLogout = () => {
+        localStorage.removeItem('userID');  // Remove userID from localStorage
+        localStorage.removeItem('username');  // Remove username from localStorage
+        navigate('/');  // Redirect back to the login page
+    };
+
     return (
         <div className="dashboard-container">
             <h1>Dashboard</h1>
-            <p>Current User: {userID ? userID : 'No user logged in'}</p>
-            <button onClick={handleRefresh} className="refresh-button">Refresh</button>
+            <p>Username: {username ? username : 'No username available'}</p> {/* Display Username */}
+            <p>Current User: {userID ? userID : 'No user logged in'}</p> {/* Display UserID */}
+            <div className="button-group">
+                <button onClick={handleRefresh} className="refresh-button">Refresh</button>
+                <button onClick={handleLogout} className="logout-button">Logout</button>
+            </div>
 
             {devices.length > 0 ? (
-                <ul className="device-list">
-                    {devices.map(device => (
-                        <li key={device.DeviceID}>
-                            {device.DeviceName} - {device.DeviceID}
-                        </li>
-                    ))}
-                </ul>
+                <table className="device-table">
+                    <thead>
+                        <tr>
+                            <th>Device Name</th>
+                            <th>Device ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {devices.map(device => (
+                            <tr key={device.DeviceID}>
+                                <td>{device.DeviceName}</td>
+                                <td>{device.DeviceID}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             ) : (
                 <p>No devices registered yet.</p>
             )}
