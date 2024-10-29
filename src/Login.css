@@ -59,4 +59,12 @@ body, html {
   .secondary-button:hover {
     background-color: #007bb5;
   }
+
+  .login-message {
+    color: #d9534f; /* Red color for error, change as needed */
+    margin-top: 15px;
+    font-weight: bold;
+    text-align: center;
+}
+
   

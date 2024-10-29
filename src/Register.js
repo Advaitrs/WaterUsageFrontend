@@ -1,34 +1,43 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Register.css'; // Add this for custom styles
+import { motion } from 'framer-motion'; // Import Framer Motion
+import './Register.css';
 
 function Register() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
+    const [message, setMessage] = useState(''); // State for the registration message
     const navigate = useNavigate();
 
     const handleRegister = async (e) => {
         e.preventDefault();
-        const response = await fetch('https://arj74ctnbi.execute-api.us-east-2.amazonaws.com/dev/registerUser', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                Username: username,  // Ensure capitalization of 'Username'
-                Password: password,  // Ensure capitalization of 'Password'
-                Email: email         // Optional, no change needed here
-            }),
-        });
-        if (response.status === 200) {
-            alert('User registered successfully!');
-            navigate('/login');
-        } else {
-            const data = await response.json();
-            alert('Registration failed: ' + data.message);
+        setMessage(''); // Clear any existing message before registration attempt
+
+        try {
+            const response = await fetch('https://arj74ctnbi.execute-api.us-east-2.amazonaws.com/dev/registerUser', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    Username: username, 
+                    Password: password, 
+                    Email: email 
+                }),
+            });
+            
+            if (response.status === 200) {
+                setMessage('User registered successfully!');
+                setTimeout(() => navigate('/'), 2000); // Redirect to login after 2 seconds
+            } else {
+                const data = await response.json();
+                setMessage('Registration failed: ' + data.message); // Display error message
+            }
+        } catch (error) {
+            console.error('Error during registration:', error);
+            setMessage('An error occurred during registration');
         }
     };
 
-    // Navigate back to the login screen
     const goToLogin = () => {
         navigate('/');
     };
@@ -57,12 +66,27 @@ function Register() {
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)} 
                 />
-                <button type="submit">Register</button>
+                <motion.button
+                    type="submit"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="register-button"
+                >
+                    Register
+                </motion.button>
             </form>
             
-            <button onClick={goToLogin} className="back-button">
+            <motion.button
+                onClick={goToLogin}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="back-button"
+            >
                 Back to Login
-            </button>
+            </motion.button>
+
+            {/* Display registration message below the buttons */}
+            {message && <p className="register-message">{message}</p>}
         </div>
     );
 }
