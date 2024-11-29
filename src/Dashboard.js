@@ -159,11 +159,16 @@ function Dashboard() {
 
                 <div className="chart-container line-chart">
                     {lineChartData ? (
-                        <Line data={lineChartData} options={{
+                        <Line
+                        data={lineChartData}
+                        options={{
                             plugins: {
                                 tooltip: {
                                     callbacks: {
-                                        label: (tooltipItem) => `Water Used: ${tooltipItem.raw}`
+                                        label: (tooltipItem) => {
+                                            const dataPoint = tooltipItem.raw; // The object containing x and y
+                                            return `Water Used: ${dataPoint.y}`;
+                                        }
                                     }
                                 }
                             },
@@ -177,7 +182,9 @@ function Dashboard() {
                                     title: { display: true, text: 'Water Usage' }
                                 }
                             }
-                        }} />
+                        }}
+                    />
+                    
                     ) : (
                         <p>Loading chart data...</p>
                     )}
