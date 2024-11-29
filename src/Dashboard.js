@@ -16,55 +16,76 @@ function Dashboard() {
     const [lineChartData, setLineChartData] = useState(null);
     const navigate = useNavigate();
 
-    const fetchWaterUsage = useCallback(async (deviceIDs) => {
+    const fetchWaterUsage = useCallback(async (deviceIDs, devicesList) => {
         const query = deviceIDs.join(',');
         const response = await fetch(`https://arj74ctnbi.execute-api.us-east-2.amazonaws.com/dev/fetchWaterUsage?deviceID=${query}`);
         const waterUsageData = await response.json();
         setWaterUsage(waterUsageData);
-
+    
+        // Calculate total water usage per device for the pie chart
+        const totalUsageByDevice = devicesList.map(device => {
+            // Filter all records for the current device
+            const filteredData = waterUsageData.filter(usage => usage.DeviceID === device.DeviceID);
+            // Sum up the WaterUsed values for the current device
+            const totalUsage = filteredData.reduce((sum, usage) => sum + parseFloat(usage.WaterUsed || 0), 0);
+            return { deviceName: device.DeviceName, totalUsage };
+        });
+    
+        // Debugging: Check the results
+        console.log('Total Usage by Device:', totalUsageByDevice);
+    
         // Generate data for the pie chart
         setChartData({
-            labels: waterUsageData.map((usage) => `Device ID: ${usage.DeviceID}`),
+            labels: totalUsageByDevice.map(device => device.deviceName),
             datasets: [
                 {
-                    label: 'Water Usage',
-                    data: waterUsageData.map((usage) => usage.WaterUsed),
+                    label: 'Total Water Usage',
+                    data: totalUsageByDevice.map(device => device.totalUsage),
                     backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
                     hoverOffset: 4
                 }
             ]
         });
-
-        // Generate data for the line chart, with each device in a unique color
+    
+        // Generate data for the line chart
         const uniqueDevices = [...new Set(waterUsageData.map(usage => usage.DeviceID))];
         const datasets = uniqueDevices.map((deviceID, index) => ({
             label: `Device ID: ${deviceID}`,
-            data: waterUsageData.filter(usage => usage.DeviceID === deviceID).map(usage => usage.WaterUsed),
+            data: waterUsageData
+                .filter(usage => usage.DeviceID === deviceID)
+                .map(usage => ({
+                    x: usage.Timestamp,
+                    y: usage.WaterUsed,
+                })),
             borderColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'][index % 6],
             fill: false,
         }));
-
+    
         setLineChartData({
-            labels: waterUsageData.map((usage) => usage.Timestamp),
             datasets: datasets
         });
     }, []);
-
+    
+    
+    
     const fetchDevices = useCallback(async (userID) => {
         const response = await fetch(`https://arj74ctnbi.execute-api.us-east-2.amazonaws.com/dev/fetchUserDevices?userID=${userID}`);
         const devicesData = await response.json();
         setDevices(devicesData);
-        fetchWaterUsage(devicesData.map(device => device.DeviceID));
+    
+        const deviceIDs = devicesData.map(device => device.DeviceID);
+        fetchWaterUsage(deviceIDs, devicesData);
     }, [fetchWaterUsage]);
-
+    
     useEffect(() => {
         const storedUserID = localStorage.getItem('userID');
         const storedUsername = localStorage.getItem('username');
-
+    
         setUserID(storedUserID);
         setUsername(storedUsername);
         fetchDevices(storedUserID);
     }, [fetchDevices]);
+    
 
     const handleRefresh = () => {
         fetchDevices(userID);
@@ -112,18 +133,25 @@ function Dashboard() {
             <div className="chart-section">
                 <div className="chart-container pie-chart">
                     {chartData ? (
-                        <Pie data={chartData} options={{
-                            plugins: {
-                                tooltip: {
-                                    callbacks: {
-                                        label: (tooltipItem) => {
-                                            const deviceUsage = waterUsage[tooltipItem.dataIndex];
-                                            return `Device ID: ${deviceUsage.DeviceID}, Water Used: ${deviceUsage.WaterUsed}, Timestamp: ${deviceUsage.Timestamp}`;
+
+
+                        <Pie
+                            data={chartData}
+                            options={{
+                                plugins: {
+                                    tooltip: {
+                                        callbacks: {
+                                            label: (tooltipItem) => {
+                                                const deviceUsage = waterUsage[tooltipItem.dataIndex];
+                                                const totalWaterUsed = tooltipItem.raw;
+                                                return `Device ID: ${deviceUsage.DeviceID}, Water Used: ${totalWaterUsed.toFixed(2)}`;
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        }} />
+                            }}
+                            />
+
                     ) : (
                         <p>Loading chart data...</p>
                     )}
