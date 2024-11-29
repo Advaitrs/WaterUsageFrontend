@@ -22,25 +22,13 @@ function Dashboard() {
         const waterUsageData = await response.json();
         setWaterUsage(waterUsageData);
 
-        // Aggregate total water usage by device
-        const deviceUsage = {};
-        waterUsageData.forEach((usage) => {
-            if (!deviceUsage[usage.DeviceID]) {
-                deviceUsage[usage.DeviceID] = {
-                    DeviceName: devices.find(device => device.DeviceID === usage.DeviceID)?.DeviceName || usage.DeviceID,
-                    TotalUsage: 0
-                };
-            }
-            deviceUsage[usage.DeviceID].TotalUsage += usage.WaterUsed;
-        });
-
         // Generate data for the pie chart
         setChartData({
-            labels: Object.values(deviceUsage).map((device) => device.DeviceName),
+            labels: waterUsageData.map((usage) => `Device ID: ${usage.DeviceID}`),
             datasets: [
                 {
                     label: 'Water Usage',
-                    data: Object.values(deviceUsage).map((device) => device.TotalUsage),
+                    data: waterUsageData.map((usage) => usage.WaterUsed),
                     backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
                     hoverOffset: 4
                 }
@@ -50,7 +38,7 @@ function Dashboard() {
         // Generate data for the line chart, with each device in a unique color
         const uniqueDevices = [...new Set(waterUsageData.map(usage => usage.DeviceID))];
         const datasets = uniqueDevices.map((deviceID, index) => ({
-            label: `Device Name: ${devices.find(device => device.DeviceID === deviceID)?.DeviceName || deviceID}`,
+            label: `Device ID: ${deviceID}`,
             data: waterUsageData.filter(usage => usage.DeviceID === deviceID).map(usage => usage.WaterUsed),
             borderColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'][index % 6],
             fill: false,
@@ -60,7 +48,7 @@ function Dashboard() {
             labels: waterUsageData.map((usage) => usage.Timestamp),
             datasets: datasets
         });
-    }, [devices]);
+    }, []);
 
     const fetchDevices = useCallback(async (userID) => {
         const response = await fetch(`https://arj74ctnbi.execute-api.us-east-2.amazonaws.com/dev/fetchUserDevices?userID=${userID}`);
@@ -88,42 +76,6 @@ function Dashboard() {
         navigate('/');
     };
 
-    const filterByTimeFrame = (timeFrame) => {
-        const now = new Date();
-        let filteredData;
-
-        if (timeFrame === 'Last 24 Hours') {
-            filteredData = waterUsage.filter(usage => new Date(usage.Timestamp) >= new Date(now - 24 * 60 * 60 * 1000));
-        } else if (timeFrame === 'Last 7 Days') {
-            filteredData = waterUsage.filter(usage => new Date(usage.Timestamp) >= new Date(now - 7 * 24 * 60 * 60 * 1000));
-        } else {
-            filteredData = waterUsage; // Default to show all
-        }
-
-        const deviceUsage = {};
-        filteredData.forEach((usage) => {
-            if (!deviceUsage[usage.DeviceID]) {
-                deviceUsage[usage.DeviceID] = {
-                    DeviceName: devices.find(device => device.DeviceID === usage.DeviceID)?.DeviceName || usage.DeviceID,
-                    TotalUsage: 0
-                };
-            }
-            deviceUsage[usage.DeviceID].TotalUsage += usage.WaterUsed;
-        });
-
-        setChartData({
-            labels: Object.values(deviceUsage).map((device) => device.DeviceName),
-            datasets: [
-                {
-                    label: 'Water Usage',
-                    data: Object.values(deviceUsage).map((device) => device.TotalUsage),
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
-                    hoverOffset: 4
-                }
-            ]
-        });
-    };
-
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
@@ -136,12 +88,6 @@ function Dashboard() {
                     <button onClick={handleRefresh} className="refresh-button">Refresh</button>
                     <button onClick={handleLogout} className="logout-button">Logout</button>
                 </div>
-            </div>
-
-            <div className="time-frame-selector">
-                <button onClick={() => filterByTimeFrame('Last 24 Hours')}>Last 24 Hours</button>
-                <button onClick={() => filterByTimeFrame('Last 7 Days')}>Last 7 Days</button>
-                <button onClick={() => filterByTimeFrame('All Time')}>All Time</button>
             </div>
 
             <div className="device-table-container">
@@ -172,7 +118,7 @@ function Dashboard() {
                                     callbacks: {
                                         label: (tooltipItem) => {
                                             const deviceUsage = waterUsage[tooltipItem.dataIndex];
-                                            return `Device Name: ${deviceUsage.DeviceName}, Total Water Used: ${deviceUsage.WaterUsed} L`;
+                                            return `Device ID: ${deviceUsage.DeviceID}, Water Used: ${deviceUsage.WaterUsed}, Timestamp: ${deviceUsage.Timestamp}`;
                                         }
                                     }
                                 }
@@ -200,7 +146,7 @@ function Dashboard() {
                                     title: { display: true, text: 'Time' }
                                 },
                                 y: {
-                                    title: { display: true, text: 'Water Usage (L)' }
+                                    title: { display: true, text: 'Water Usage' }
                                 }
                             }
                         }} />

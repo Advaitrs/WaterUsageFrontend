@@ -137,28 +137,34 @@ html, body {
 }
 
 /* Time Frame Selector */
+/* Time Frame Selector Buttons */
 .time-frame-selector {
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
 }
 
 .time-frame-selector button {
-  padding: 10px 15px;
-  margin: 5px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  background-color: #ffffff;
-  transition: background-color 0.3s, color 0.3s;
+    padding: 10px 15px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #f0f0f0; /* Light gray background */
+    color: #333; /* Dark text color for visibility */
+    font-size: 16px; /* Adjust font size for readability */
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .time-frame-selector button:hover {
-  background-color: #f0f0f0;
+    background-color: #4CAF50; /* Green background on hover */
+    color: black; /* White text on hover */
 }
 
 .time-frame-selector button.active {
-  background-color: #4CAF50;
-  color: white;
+    background-color: #4CAF50; /* Green background for active button */
+    color: black; /* White text for active button */
+    border-color: #45a049; /* Darker green border for active button */
 }
+
