@@ -81,23 +81,50 @@ function Dashboard() {
     setLineChartData({ datasets });
 }, []);
 
-    const fetchDevices = useCallback(async (userID) => {
+const fetchDevices = useCallback(async (userID) => {
+    try {
         const response = await fetch(`https://arj74ctnbi.execute-api.us-east-2.amazonaws.com/dev/fetchUserDevices?userID=${userID}`);
         const devicesData = await response.json();
-        setDevices(devicesData);
+        console.log("Devices API Response:", devicesData); // Debugging log
 
-        const deviceIDs = devicesData.map(device => device.DeviceID);
-        fetchWaterUsage(deviceIDs, devicesData);
-    }, [fetchWaterUsage]);
+        // Handle response with "Items" or array directly
+        if (devicesData.Items && Array.isArray(devicesData.Items)) {
+            console.log("Devices found (from Items):", devicesData.Items);
+            setDevices(devicesData.Items); // Use Items array
+            const deviceIDs = devicesData.Items.map(device => device.DeviceID);
+            fetchWaterUsage(deviceIDs, devicesData.Items);
+        } else if (Array.isArray(devicesData)) {
+            console.log("Devices found (array response):", devicesData);
+            setDevices(devicesData); // Use response directly
+            const deviceIDs = devicesData.map(device => device.DeviceID);
+            fetchWaterUsage(deviceIDs, devicesData);
+        } else {
+            console.error("Devices data is not valid. Fallback to an empty array.");
+            setDevices([]); // Fallback to an empty array
+        }
+    } catch (error) {
+        console.error("Error fetching devices:", error);
+        setDevices([]); // Handle errors gracefully by setting to an empty array
+    }
+}, [fetchWaterUsage]);
 
-    useEffect(() => {
-        const storedUserID = localStorage.getItem('userID');
-        const storedUsername = localStorage.getItem('username');
 
-        setUserID(storedUserID);
-        setUsername(storedUsername);
+
+
+useEffect(() => {
+    const storedUserID = localStorage.getItem('userID');
+    const storedUsername = localStorage.getItem('username');
+
+    setUserID(storedUserID);
+    setUsername(storedUsername);
+
+    if (storedUserID) {
         fetchDevices(storedUserID);
-    }, [fetchDevices]);
+    } else {
+        setDevices([]); // Default to an empty array for users without a userID
+    }
+}, [fetchDevices]);
+
 
     const handleRefresh = () => {
         fetchDevices(userID);
@@ -122,96 +149,105 @@ function Dashboard() {
                     <button onClick={handleLogout} className="logout-button">Logout</button>
                 </div>
             </div>
-
-            <div className="device-table-container">
-                <table className="device-table">
-                    <thead>
-                        <tr>
-                            <th>Device Name</th>
-                            <th>Device ID</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {devices.map(device => (
-                            <tr key={device.DeviceID}>
-                                <td>{device.DeviceName}</td>
-                                <td>{device.DeviceID}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            <div className="disruption-messages">
-                {disruptionMessages.length > 0 ? (
-                    disruptionMessages.map((message, index) => (
-                        <p key={index} className="disruption-alert">
-                            {message}
-                        </p>
-                    ))
-                ) : (
-                    <p>No disruptions detected.</p>
-                )}
-            </div>
-
-            <div className="chart-section">
-                <div className="chart-container pie-chart">
-                    {chartData ? (
-                        <Pie
-                            data={chartData}
-                            options={{
-                                plugins: {
-                                    tooltip: {
-                                        callbacks: {
-                                            label: (tooltipItem) => {
-                                                const deviceUsage = waterUsage[tooltipItem.dataIndex];
-                                                const totalWaterUsed = tooltipItem.raw;
-                                                return `Device ID: ${deviceUsage.DeviceID}, Water Used: ${totalWaterUsed.toFixed(2)}`;
+    
+            {/* Check if devices is an array and has items */}
+            {Array.isArray(devices) && devices.length > 0 ? (
+                <>
+                    <div className="device-table-container">
+                        <table className="device-table">
+                            <thead>
+                                <tr>
+                                    <th>Device Name</th>
+                                    <th>Device ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {devices.map(device => (
+                                    <tr key={device.DeviceID}>
+                                        <td>{device.DeviceName}</td>
+                                        <td>{device.DeviceID}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+    
+                    <div className="disruption-messages">
+                        {disruptionMessages.length > 0 ? (
+                            disruptionMessages.map((message, index) => (
+                                <p key={index} className="disruption-alert">
+                                    {message}
+                                </p>
+                            ))
+                        ) : (
+                            <p>No disruptions detected.</p>
+                        )}
+                    </div>
+    
+                    <div className="chart-section">
+                        <div className="chart-container pie-chart">
+                            {chartData ? (
+                                <Pie
+                                    data={chartData}
+                                    options={{
+                                        plugins: {
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: (tooltipItem) => {
+                                                        const deviceUsage = waterUsage[tooltipItem.dataIndex];
+                                                        const totalWaterUsed = tooltipItem.raw;
+                                                        return `Device ID: ${deviceUsage.DeviceID}, Water Used: ${totalWaterUsed.toFixed(2)}`;
+                                                    },
+                                                },
                                             },
                                         },
-                                    },
-                                },
-                            }}
-                        />
-                    ) : (
-                        <p>Loading chart data...</p>
-                    )}
-                </div>
-
-                <div className="chart-container line-chart">
-                    {lineChartData ? (
-                        <Line
-                            data={lineChartData}
-                            options={{
-                                plugins: {
-                                    tooltip: {
-                                        callbacks: {
-                                            label: (tooltipItem) => {
-                                                const dataPoint = tooltipItem.raw; // The object containing x and y
-                                                return `Water Used: ${dataPoint.y}`;
+                                    }}
+                                />
+                            ) : (
+                                <p>Loading chart data...</p>
+                            )}
+                        </div>
+    
+                        <div className="chart-container line-chart">
+                            {lineChartData ? (
+                                <Line
+                                    data={lineChartData}
+                                    options={{
+                                        plugins: {
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: (tooltipItem) => {
+                                                        const dataPoint = tooltipItem.raw; // The object containing x and y
+                                                        return `Water Used: ${dataPoint.y}`;
+                                                    },
+                                                },
                                             },
                                         },
-                                    },
-                                },
-                                scales: {
-                                    x: {
-                                        type: 'time',
-                                        time: { unit: 'hour' },
-                                        title: { display: true, text: 'Time' },
-                                    },
-                                    y: {
-                                        title: { display: true, text: 'Water Usage' },
-                                    },
-                                },
-                            }}
-                        />
-                    ) : (
-                        <p>Loading chart data...</p>
-                    )}
-                </div>
-            </div>
+                                        scales: {
+                                            x: {
+                                                type: 'time',
+                                                time: { unit: 'hour' },
+                                                title: { display: true, text: 'Time' },
+                                            },
+                                            y: {
+                                                title: { display: true, text: 'Water Usage' },
+                                            },
+                                        },
+                                    }}
+                                />
+                            ) : (
+                                <p>Loading chart data...</p>
+                            )}
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <p>No devices registered yet. Please add a device to start monitoring water usage.</p>
+            )}
         </div>
     );
+    
+    
 }
 
 export default Dashboard;

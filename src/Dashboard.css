@@ -170,7 +170,7 @@ html, body {
 
 /* Disruption Messages Section */
 .disruption-messages {
-  margin:5px 0;
+  margin: 5px 0;
   padding: 8px;
   border: 1px solid #ffc107; /* Warning color border */
   background-color: #fff3cd; /* Warning color background */
@@ -179,6 +179,22 @@ html, body {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
   font-size: 14px;
   line-height: 1.3;
+  max-height: 150px; /* Fixed height for the box */
+  overflow-y: auto; /* Make it scrollable */
+}
+
+/* Scrollbar Styling for Disruption Messages */
+.disruption-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.disruption-messages::-webkit-scrollbar-thumb {
+  background-color: #cccccc;
+  border-radius: 4px;
+}
+
+.disruption-messages::-webkit-scrollbar-thumb:hover {
+  background-color: #aaaaaa;
 }
 
 /* Individual Alert Messages */
@@ -190,5 +206,6 @@ html, body {
 .disruption-messages p:last-child {
   margin-bottom: 0; /* Remove bottom margin for the last message */
 }
+
 
 
